@@ -1,0 +1,3 @@
+Release {{ include "k8s-image-warden.chart" . }} is ready. You can try it out with kiwctl:
+
+./bin/kiwctl --kiw-controller-namespace {{ .Release.Namespace }} --kiw-controller-service-name {{ include "k8s-image-warden.fullname" . }}-controller rules

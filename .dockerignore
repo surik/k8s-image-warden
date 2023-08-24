@@ -1,0 +1,14 @@
+*.tar
+*.yaml
+.dockerignore
+.git
+.github
+.gitignore
+LICENSE
+README.md
+bin
+chart
+cover.out
+docs
+scripts
+tesdata

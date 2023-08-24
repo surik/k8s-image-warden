@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-image-warden.fullname" . }}
+  labels:
+    {{- include "k8s-image-warden.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.controller.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "k8s-image-warden.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: controller
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-image-warden.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: controller
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: controller
+        args: 
+        - --store-file=/app/data/store.db
+        - --agent-report-interval={{ .Values.agent.criFetchInterval }}
+        - --retention={{ .Values.controller.retentionInDays }}
+        image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag | default .Chart.AppVersion }}"
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.webhook.port }}
+          name: webhook
+        - containerPort: {{ .Values.service.grpc.port }}
+          name: grpc
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+    {{- with .Values.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+    affinity:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+        volumeMounts:
+          - name: webhook-tls-certs
+            mountPath: /app/certs
+            readOnly: true
+          - name: rules-config
+            mountPath: /app/config
+            readOnly: true
+          - mountPath: "/app/data"
+            name: storage
+      volumes:
+      - name: webhook-tls-certs
+        secret:
+          secretName: {{ include "k8s-image-warden.fullname" . }}-webhook-server-tls
+      - name: rules-config
+        configMap:
+          name: {{ include "k8s-image-warden.fullname" . }}-rules-config
+      - name: storage
+        persistentVolumeClaim:
+          claimName: {{ include "k8s-image-warden.fullname" . }}-pvc

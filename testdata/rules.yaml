@@ -1,0 +1,20 @@
+rules:
+  - name: docker.io is default registry
+    mutate:
+      type: DefaultRegistry
+      registry: "docker.io"
+  - name: no latests
+    validate:
+      type: Latest
+      allow: false
+  - name: nginx newer than 1.0.0
+    validate:
+      type: SemVer
+      imageName: docker\.io/nginx
+      imageTag: ">= 1.0.0"
+      allow: true
+  - name: no rolling tag newer than 2023-07-01
+    validate:
+      type: RollingTag
+      allow: false
+      after: 2023-07-01 00:00:01

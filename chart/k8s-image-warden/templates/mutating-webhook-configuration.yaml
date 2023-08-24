@@ -1,0 +1,29 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "k8s-image-warden.fullname" . }}-controller
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "k8s-image-warden.fullname" . }}-webhook-server-tls
+  labels:
+    {{- include "k8s-image-warden.labels" . | nindent 4 }}
+webhooks:
+  - name: {{ include "k8s-image-warden.fullname" . }}-controller.{{ .Release.Namespace }}.svc
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values: [{{ quote .Release.Namespace }}]
+    sideEffects: NoneOnDryRun
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      service:
+        name: {{ include "k8s-image-warden.fullname" . }}-controller
+        port: {{ .Values.service.webhook.port }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate"
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"

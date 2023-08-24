@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "k8s-image-warden.fullname" . }}-agent
+  labels:
+    {{- include "k8s-image-warden.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "k8s-image-warden.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: k8s-image-warden-agent
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-image-warden.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
+    spec:
+      containers:
+      - image: k8s-image-warden-agent:latest
+        image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
+        name: agent
+        args: 
+        - --container-runtime-endpoint={{ .Values.agent.criEndpoint }}
+        - --controller-endpoint={{ include "k8s-image-warden.fullname" . }}-controller:{{ .Values.service.grpc.port }}
+        - --cri-fetch-interval={{ .Values.agent.criFetchInterval }}
+        volumeMounts:
+        - mountPath: {{ .Values.agent.criEndpoint }}
+          name: runtime-endpoint
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: runtime-endpoint
+        hostPath:
+          path: {{ .Values.agent.criEndpoint }}
+          type: Socket

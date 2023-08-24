@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-image-warden.fullname" . }}-rules-config
+data:
+  rules.yaml: |-
+{{ toYaml .Values.controller.rulesConfig | indent 4 }}

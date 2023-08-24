@@ -1,0 +1,6 @@
+/cover.out
+/bin/
+/manifest.yaml
+nginx.yaml
+/*.db
+/*.tar

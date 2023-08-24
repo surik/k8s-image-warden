@@ -1,0 +1,10 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "k8s-image-warden.fullname" . }}-webhook-server-tls
+spec:
+  secretName: {{ include "k8s-image-warden.fullname" . }}-webhook-server-tls
+  dnsNames:
+  - {{ include "k8s-image-warden.fullname" . }}-controller.{{ .Release.Namespace }}.svc
+  issuerRef:
+    name: {{ include "k8s-image-warden.fullname" . }}-issuer
