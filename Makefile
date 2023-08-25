@@ -1,6 +1,7 @@
 all: agent controller client
 
 BUILD_TAGS := containers_image_openpgp,containers_image_docker_daemon_stub,containers_image_storage_stub
+LDFLAGS := -ldflags "-w -s -X 'github.com/surik/k8s-image-warden.Tag=$(shell git describe --tags)'"
 
 proto:
 	@echo "Generating Go files"
@@ -8,15 +9,15 @@ proto:
 
 agent: 
 	@echo "Building agent..."
-	go build -tags $(BUILD_TAGS) -o bin/k8s-image-warden-agent github.com/surik/k8s-image-warden/cmd/agent
+	go build $(LDFLAGS) -tags $(BUILD_TAGS) -o bin/k8s-image-warden-agent github.com/surik/k8s-image-warden/cmd/agent
 
 controller: 
 	@echo "Building controller..."
-	go build -tags $(BUILD_TAGS) -o bin/k8s-image-warden-controller github.com/surik/k8s-image-warden/cmd/controller
+	go build $(LDFLAGS) -tags $(BUILD_TAGS) -o bin/k8s-image-warden-controller github.com/surik/k8s-image-warden/cmd/controller
 
 client: 
 	@echo "Building client..."
-	go build -tags $(BUILD_TAGS) -o bin/kiwctl github.com/surik/k8s-image-warden/cmd/client
+	go build $(LDFLAGS) -tags $(BUILD_TAGS) -o bin/kiwctl github.com/surik/k8s-image-warden/cmd/client
 
 docker:
 	@echo "Building images..."
