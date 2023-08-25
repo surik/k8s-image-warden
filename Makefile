@@ -1,7 +1,8 @@
 all: agent controller client
 
 BUILD_TAGS := containers_image_openpgp,containers_image_docker_daemon_stub,containers_image_storage_stub
-LDFLAGS := -ldflags "-w -s -X 'github.com/surik/k8s-image-warden.Tag=$(shell git describe --tags)'"
+TAG ?= $(shell git describe --tags)
+LDFLAGS := -ldflags "-w -s -X 'github.com/surik/k8s-image-warden.Tag=$(TAG)'"
 
 proto:
 	@echo "Generating Go files"
@@ -21,8 +22,8 @@ client:
 
 docker:
 	@echo "Building images..."
-	docker buildx build -f cmd/agent/Dockerfile -t k8s-image-warden-agent .
-	docker buildx build -f cmd/controller/Dockerfile -t k8s-image-warden-controller .
+	docker buildx build --build-arg TAG=$(TAG) -f cmd/agent/Dockerfile -t k8s-image-warden-agent .
+	docker buildx build --build-arg TAG=$(TAG) -f cmd/controller/Dockerfile -t k8s-image-warden-controller .
 
 install-deps:
 	@echo "Install dependencies..."
