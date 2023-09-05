@@ -29,19 +29,19 @@ controller:
         type: Latest
         allow: false
   image:
-    repository: k8s-image-warden-controller
-    pullPolicy: Never
+    repository: ghcr.io/surik/k8s-image-warden/controller
+    pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "latest"
+    # tag: "latest"
 
 agent:
-  criEndpoint: "/run/containerd/containerd.sock"
+  criEndpoint: "/var/run/cri-dockerd.sock"
   criFetchInterval: 5
   image:
-    repository: k8s-image-warden-agent
-    pullPolicy: Never
+    repository: ghcr.io/surik/k8s-image-warden/agent
+    pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "latest"
+    # tag: "latest"
 
 podAnnotations: {}
 
